@@ -7,6 +7,15 @@
 #include <stdint.h> 
 #include <string.h>
 
+int verificar_bind(int resultado, sqlite3 *db) {
+    if (resultado != SQLITE_OK) {
+        printf("Erro ao associar parametro: %s\n", sqlite3_errmsg(db));
+        return 1;
+    }
+
+    return 0;
+}
+
 int validacao_resultado(int resultado, sqlite3 *db, sqlite3_stmt *stmt) {
     if (resultado != SQLITE_OK){
         printf("Erro: %s\n", sqlite3_errmsg(db)); // funcao que mostra erros
@@ -341,4 +350,136 @@ int gerar_hash_senha(const char *senha, char *hash, size_t tamanho_hash) {
 
     return 0;
 
+}
+
+int inserir_pokemon(const pokemon *p) {
+    sqlite3 *db = NULL;
+
+    int resultado = sqlite3_open("pokedex.db", &db);
+
+    if (resultado != SQLITE_OK) {
+        printf("Erro ao abrir banco de dados: %s\n", sqlite3_errmsg(db));
+        sqlite3_close(db);
+        return 1;
+    }
+
+    const char *sql =
+    "INSERT INTO pokemons ("
+    "pokedex_number, name, type_1, type_2, "
+    "generation, height, weight, "
+    "hp, attack, defense, sp_attack, sp_defense, speed"
+    ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+
+    sqlite3_stmt *stmt = NULL;
+
+    resultado = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+
+    if (resultado != SQLITE_OK) {
+        printf("Erro ao preparar INSERT: %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return 1;
+    }
+
+    sqlite3_bind_int(stmt, 1, p->pokedex_number);
+    if (verificar_bind(sqlite3_bind_int(stmt, 1, p->pokedex_number), db)) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return 1;
+    }
+    sqlite3_bind_text(stmt, 2, p->name, -1, SQLITE_TRANSIENT);
+    if (verificar_bind(sqlite3_bind_text(stmt, 2, p->name, -1, SQLITE_TRANSIENT), db)) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return 1;
+    }
+    sqlite3_bind_text(stmt, 3, p->type1, -1, SQLITE_TRANSIENT);
+    if (verificar_bind(sqlite3_bind_text(stmt, 3, p->type1, -1, SQLITE_TRANSIENT), db)) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return 1;
+    }
+    sqlite3_bind_text(stmt, 4, p->type2, -1, SQLITE_TRANSIENT);
+    if (verificar_bind(sqlite3_bind_text(stmt, 4, p->type2, -1, SQLITE_TRANSIENT), db)) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return 1;
+    }
+    sqlite3_bind_int(stmt, 5, p->generation);
+    if (verificar_bind(sqlite3_bind_int(stmt, 5, p->generation), db)) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return 1;
+    }
+    sqlite3_bind_double(stmt, 6, p->height);
+    if (verificar_bind(sqlite3_bind_double(stmt, 6, p->height), db)) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return 1;
+    }
+    sqlite3_bind_double(stmt, 7, p->weight);
+    if (verificar_bind(sqlite3_bind_double(stmt, 7, p->weight), db)) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return 1;
+    }
+
+    sqlite3_bind_int(stmt, 8, p->stats.hp);
+    if (verificar_bind(sqlite3_bind_int(stmt, 8, p->stats.hp), db)) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return 1;
+    }
+    sqlite3_bind_int(stmt, 9, p->stats.attack);
+    if (verificar_bind(sqlite3_bind_int(stmt, 9, p->stats.attack), db)) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return 1;
+    }
+    sqlite3_bind_int(stmt, 10, p->stats.defense);
+    if (verificar_bind(sqlite3_bind_int(stmt, 10, p->stats.defense), db)) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return 1;
+    }
+    sqlite3_bind_int(stmt, 11, p->stats.sp_attack);
+    if (verificar_bind(sqlite3_bind_int(stmt, 11, p->stats.sp_attack), db)) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return 1;
+    }
+    sqlite3_bind_int(stmt, 12, p->stats.sp_defense);
+    if (verificar_bind(sqlite3_bind_int(stmt, 12, p->stats.sp_defense), db)) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return 1;
+    }
+    sqlite3_bind_int(stmt, 13, p->stats.speed);
+    if (verificar_bind(sqlite3_bind_int(stmt, 13, p->stats.speed), db)) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return 1;
+    }
+
+    resultado = sqlite3_step(stmt);
+
+    if (resultado != SQLITE_DONE) {
+        if (sqlite3_extended_errcode(db) == SQLITE_CONSTRAINT_UNIQUE) {
+            printf("Pokemon #%d ja cadastrado!\n", p->pokedex_number);
+        } else {
+            printf("Erro ao inserir Pokemon: %s\n", sqlite3_errmsg(db));
+        }
+
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return 1;
+    }
+
+    printf("Pokemon inserido com sucesso\n"); // tirar dps
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return 0;
+
+    return 0;
 }

@@ -16,5 +16,7 @@ int usuario_existe(const char *nome);
 int gerar_hash_senha(const char *senha, char *hash, size_t tamanho_hash); // retorna 0: sucesso, 1: error
 int buscar_usuario(const char *nome, usuario *u);
 int verificar_senha(const char *senha, const char *hash);
+// preencher os atributos no banco de dados
+int inserir_pokemon(const pokemon *p);
 
 #endif
