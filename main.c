@@ -10,7 +10,6 @@ int main() {
     if (inicializar_database() != 0) {
         return 1;
     }
-    // buscar_pokemon_api(1); // temporario p ve se funciona
     int opcao;
     int entrada = 1;
     usuario treinador = {0};

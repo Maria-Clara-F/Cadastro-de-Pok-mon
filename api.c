@@ -50,8 +50,8 @@ int buscar_pokemon_api(int numero) {
     // ponteiro especial da biblioteca
     CURL *curl = curl_easy_init(); // cria um identificador que eh feito para executar a requisicao
     if (curl == NULL) {
-    printf("Erro ao inicializar CURL.\n");
-    return 1;
+        printf("Erro ao inicializar CURL.\n");
+        return 1;
     }
 
     char url[100]; // acessar os pokemons
@@ -103,7 +103,7 @@ int buscar_pokemon_api(int numero) {
     // verifica o nome
     if (cJSON_IsString(nome) && nome->valuestring != NULL) {
         snprintf(p.name, sizeof(p.name), "%s", nome->valuestring);
-        printf("Pokemon encontrado: %s\n", p.name);
+        //printf("Pokemon encontrado: %s\n", p.name);
     } else {
         printf("Nome do Pokemon nao encontrado.\n");
     }
@@ -111,11 +111,11 @@ int buscar_pokemon_api(int numero) {
     // verifica o numero da Pokedex
     if (cJSON_IsNumber(id)) {
         p.pokedex_number = id->valueint;
-        printf("Numero: %d\n", p.pokedex_number);
+        //printf("Numero: %d\n", p.pokedex_number);
         if (p.pokedex_number >= 1 && p.pokedex_number <= 151) {
             p.generation = 1;
         }
-        printf("Geracao: %d\n", p.generation); // por enquanto serao apenas os pokemons da 1 geracao
+        //printf("Geracao: %d\n", p.generation); // por enquanto serao apenas os pokemons da 1 geracao
     } else {
         printf("Numero do Pokemon nao encontrado.\n");
     }
@@ -123,7 +123,7 @@ int buscar_pokemon_api(int numero) {
     // verifica a altura
     if (cJSON_IsNumber(altura)) {
         p.height = (float)altura->valuedouble / 10.0f;
-        printf("Altura: %.2f m\n", p.height);
+        //printf("Altura: %.2f m\n", p.height);
     } else {
         printf("Altura do Pokemon nao encontrada.\n");
     }
@@ -131,7 +131,7 @@ int buscar_pokemon_api(int numero) {
     // verifica o peso
     if (cJSON_IsNumber(peso)) {
         p.weight = (float)peso->valuedouble / 10.0f;
-        printf("Peso: %.2f kg\n", p.weight);
+        //printf("Peso: %.2f kg\n", p.weight);
     } else {
         printf("Peso do Pokemon nao encontrado.\n");
     }
@@ -142,14 +142,14 @@ int buscar_pokemon_api(int numero) {
 
     if (cJSON_IsArray(tipos)) {
         int quantidade_tipos = cJSON_GetArraySize(tipos);
-        printf("Quantidade de tipos: %d\n", quantidade_tipos);
+        //printf("Quantidade de tipos: %d\n", quantidade_tipos);
         for (int i = 0; i < quantidade_tipos; i++) {
             cJSON *elemento = cJSON_GetArrayItem(tipos, i);
             cJSON *tipo = cJSON_GetObjectItemCaseSensitive(elemento, "type");
             cJSON *nome_tipo = cJSON_GetObjectItemCaseSensitive(tipo, "name");
             cJSON *slot = cJSON_GetObjectItemCaseSensitive(elemento, "slot");
             if(cJSON_IsString(nome_tipo) && nome_tipo->valuestring != NULL && cJSON_IsNumber(slot)) {
-                printf("Tipo: %s\n", nome_tipo->valuestring);
+                //printf("Tipo: %s\n", nome_tipo->valuestring);
                 if (slot->valueint == 1) {
                     snprintf(p.type1, sizeof(p.type1), "%s", nome_tipo->valuestring);
                 } else if (slot->valueint == 2) {
@@ -159,10 +159,10 @@ int buscar_pokemon_api(int numero) {
         }
 
         printf("\nTipos armazenados:\n");
-        printf("Tipo 1: %s\n", p.type1);
+        //printf("Tipo 1: %s\n", p.type1);
 
         if (p.type2[0] != '\0') {
-            printf("Tipo 2: %s\n", p.type2);
+            //printf("Tipo 2: %s\n", p.type2);
         }
     } else {
         printf("Tipos do Pokemon nao encontrados.\n");
@@ -183,7 +183,7 @@ int buscar_pokemon_api(int numero) {
         return 1;
     } else {
         int quantidade = cJSON_GetArraySize(stats); // quantidade esperada: 6
-        printf("Quantidade de atributos: %d\n", quantidade);
+        //printf("Quantidade de atributos: %d\n", quantidade);
 
         // atributos do stat
         int atributos_encontrados = 0;
@@ -260,7 +260,7 @@ int buscar_pokemon_api(int numero) {
         return 1;
     }
 
-    printf("Pokemon salvo no banco de dados!\n"); // tirar dps
+    //printf("Pokemon salvo no banco de dados!\n"); // tirar dps
 
     cJSON_Delete(json); // libera a memoria do json
     free(resposta.dados); // liberando memoria
@@ -271,9 +271,19 @@ int buscar_pokemon_api(int numero) {
 int importar_primeira_geracao(void) {
     int sucessos = 0;
     int falhas = 0;
+    int existentes = 0;
 
     for (int numero = 1; numero <= 151; numero++) {
-        printf("\nImportando Pokemon #%d...\n", numero);
+        //printf("\nImportando Pokemon #%d...\n", numero);
+        int existe = pokemon_existe(numero);
+        
+        if(existe == 1) {
+            //printf("Pokemon ja cadastrado\n");
+            existentes++;
+            continue;
+        } else if (existe == -1) {
+            return 1;
+        }
 
         if (buscar_pokemon_api(numero) == 0) {
             sucessos++;
@@ -282,9 +292,10 @@ int importar_primeira_geracao(void) {
         }
     }
 
-    printf("\nImportacao finalizada!\n");
-    printf("Sucessos: %d\n", sucessos);
-    printf("Falhas: %d\n", falhas);
+    //printf("\nImportacao finalizada!\n");
+    //printf("Sucessos: %d\n", sucessos);
+    //printf("Falhas: %d\n", falhas);
+    //printf("Existentes: %d\n", existentes);
 
     return falhas == 0 ? 0 : 1; // se falhas == 0, return 0, senao 1
 

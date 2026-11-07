@@ -18,5 +18,8 @@ int buscar_usuario(const char *nome, usuario *u);
 int verificar_senha(const char *senha, const char *hash);
 // preencher os atributos no banco de dados
 int inserir_pokemon(const pokemon *p);
+int pokemon_existe(int numero);
+// busca
+int buscar_pokemon_por_numero(int numero, pokemon *p);
 
 #endif

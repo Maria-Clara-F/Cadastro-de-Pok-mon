@@ -235,7 +235,7 @@ int inicializar_database() {
         return 1;
     }
 
-    printf("Tabela criada com sucesso!\n");
+    //printf("Tabela criada com sucesso!\n");
     sqlite3_close(db);
     return 0;
 
@@ -326,9 +326,9 @@ int gerar_hash_senha(const char *senha, char *hash, size_t tamanho_hash) {
 
     // verificar o tamanho
     if (tamanho_hash < argon2_encodedlen(t_cost, m_cost, parallelism, sizeof(salt), hash_len, Argon2_id)) {
-    printf("Espaco insuficiente para armazenar o hash!\n");
-    return 1;
-}
+        printf("Espaco insuficiente para armazenar o hash!\n");
+        return 1;
+    }
 
     int resultado = argon2id_hash_encoded(
     t_cost, // quantidade de interacoes
@@ -465,7 +465,7 @@ int inserir_pokemon(const pokemon *p) {
 
     if (resultado != SQLITE_DONE) {
         if (sqlite3_extended_errcode(db) == SQLITE_CONSTRAINT_UNIQUE) {
-            printf("Pokemon #%d ja cadastrado!\n", p->pokedex_number);
+            //printf("Pokemon #%d ja cadastrado!\n", p->pokedex_number);
         } else {
             printf("Erro ao inserir Pokemon: %s\n", sqlite3_errmsg(db));
         }
@@ -475,11 +475,141 @@ int inserir_pokemon(const pokemon *p) {
         return 1;
     }
 
-    printf("Pokemon inserido com sucesso\n"); // tirar dps
+    //printf("Pokemon inserido com sucesso\n"); // tirar dps
 
     sqlite3_finalize(stmt);
     sqlite3_close(db);
     return 0;
+
+}
+
+int pokemon_existe(int numero) {
+    sqlite3 *db = NULL;
+    sqlite3_stmt *stmt = NULL;
+
+    int resultado = sqlite3_open("pokedex.db", &db);
+
+    if (resultado != SQLITE_OK) {
+        printf("Erro ao abrir banco: %s\n", sqlite3_errmsg(db));
+        sqlite3_close(db);
+        return -1;
+    }
+
+    const char *sql =
+    "SELECT 1 FROM pokemons WHERE pokedex_number = ? LIMIT 1;";
+
+    resultado = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+
+    if (resultado != SQLITE_OK) {
+        printf("Erro ao preparar consulta: %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return -1;
+    }
+
+    resultado = sqlite3_bind_int(stmt, 1, numero);
+
+    if (resultado != SQLITE_OK) {
+        printf("Erro ao associar numero: %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return -1;
+    }
+
+    resultado = sqlite3_step(stmt);
+
+    int existe = -1;
+
+    if (resultado == SQLITE_ROW) {
+        existe = 1;
+    } else if (resultado == SQLITE_DONE) {
+        existe = 0;
+    } else {
+        printf("Erro na consulta: %s\n", sqlite3_errmsg(db));
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return existe;
+
+}
+
+int buscar_pokemon_por_numero(int numero, pokemon *p) {
+
+    sqlite3 *db = NULL;
+    sqlite3_stmt *stmt = NULL;
+
+    if (p == NULL) {
+        return -1;
+    }
+
+    int resultado = sqlite3_open("pokedex.db", &db);
+    if(resultado != SQLITE_OK) {
+        printf("Erro: %s\n", sqlite3_errmsg(db));
+        sqlite3_close(db);
+        return -1;
+    }
+
+    const char *sql = 
+    "SELECT * FROM pokemons WHERE pokedex_number = ?;";
+
+    resultado = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    if(validacao_resultado(resultado, db, stmt)) {
+        return -1;
+    }
+
+    resultado = sqlite3_bind_int(stmt, 1, numero);
+    if(validacao_resultado(resultado, db, stmt)) {
+        return -1;
+    }
+
+    resultado = sqlite3_step(stmt);
+    if (resultado == SQLITE_DONE) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return 1;
+    } else if (resultado != SQLITE_ROW) {
+        printf("Erro: %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return -1;
+    }
+
+    p->id = sqlite3_column_int(stmt, 0);
+    p->pokedex_number = sqlite3_column_int(stmt, 1);
+    const unsigned char *nome = sqlite3_column_text(stmt, 2);
+
+    if (nome != NULL) {
+        snprintf(p->name, sizeof(p->name), "%s", (const char *)nome);
+    }
+
+    const unsigned char *tipo1 = sqlite3_column_text(stmt, 3);
+
+    if(tipo1 != NULL) {
+        snprintf(p->type1, sizeof(p->type1), "%s", (const char *)tipo1);
+    }
+
+    const unsigned char *tipo2 = sqlite3_column_text(stmt, 4);
+
+    if(tipo2 != NULL) {
+        snprintf(p->type2, sizeof(p->type2), "%s", (const char *)tipo2);
+    } else {
+        p->type2[0] = '\0';
+    }
+
+    p->generation = sqlite3_column_int(stmt, 5);
+    p->height = sqlite3_column_double(stmt, 6);
+    p->weight = sqlite3_column_double(stmt, 7);
+    p->stats.hp = sqlite3_column_int(stmt, 8);
+    p->stats.attack = sqlite3_column_int(stmt, 9);
+    p->stats.defense = sqlite3_column_int(stmt, 10);
+    p->stats.sp_attack = sqlite3_column_int(stmt, 11);
+    p->stats.sp_defense = sqlite3_column_int(stmt, 12);
+    p->stats.speed = sqlite3_column_int(stmt, 13);
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
 
     return 0;
 }

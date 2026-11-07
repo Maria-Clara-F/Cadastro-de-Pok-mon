@@ -62,6 +62,30 @@ void normalizar_espacos(char *str) {
     str[escrita] = '\0';
 }
 
+void exibir_pokemon(const pokemon *p) {
+    if(p == NULL) {
+        return;
+    }
+
+    printf("\nNumero: %d", p->pokedex_number);
+    printf("\nNome: %s", p->name);
+    printf("\nTipo 1: %s", p->type1);
+    if(p->type2[0] != '\0') {
+        printf("\nTipo 2: %s", p->type2);
+    }
+    printf("\nGeneracao %d", p->generation);
+    printf("\nAltura: %.2f", p->height);
+    printf("\nPeso: %.2f", p->weight);
+    printf("\nVida: %d", p->stats.hp);
+    printf("\nAtaque: %d", p->stats.attack);
+    printf("\nDefesa: %d", p->stats.defense);
+    printf("\nAtaque especial: %d", p->stats.sp_attack);
+    printf("\nDefesa especial: %d", p->stats.sp_defense);
+    printf("\nVelocidade: %d", p->stats.speed);
+    printf("\n");
+
+}
+
 //
 
 int cadastrar() {
@@ -69,6 +93,32 @@ int cadastrar() {
 }
 
 int consultar() {
+    printf("\n=//===//===//===//====//===//===//=");
+    printf("\n   CONSULTAR O BANCO DE POKEMONS   ");
+    printf("\n=//===//===//===//====//===//===//=");
+    int opcao;
+    printf("[0] Voltar\n[1] Listar todos os Pokemons\n[2] Buscar por numero\n[3] Buscar por nome\n[4] Filtrar por tipo\n");
+    printf("O que deseja? ");
+    while(!ler_int(&opcao, 0, 4));
+    printf("\n");
+
+    switch (opcao) {
+        case 0:
+            return 0;
+        case 1:
+            break;
+        case 2:
+            int numero;
+            pokemon p = {0};
+            while(!ler_int(&numero, 1, 151));
+            buscar_pokemon_por_numero(numero, &p);
+            exibir_pokemon(&p);
+            break;
+        case 3:
+            break;
+        case 4:
+            break;
+    }
     return 0;
 }
 

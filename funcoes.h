@@ -4,6 +4,7 @@
 
 int ler_int(int *opcao, int min, int max);
 void normalizar_espacos(char *str);
+void exibir_pokemon(const pokemon *p);
 
 ///
 int cadastrar();
